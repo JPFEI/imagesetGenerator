@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# 使用： .imagesetGenerator.sh 图片文件所在目录 新建文件夹名称
+
 ScalePic () {
     imageHeight=`sips -g pixelHeight $1 | awk -F: '{print $2}'`
     imageWidth=`sips -g pixelWidth $1 | awk -F: '{print $2}'`
@@ -53,13 +55,39 @@ Contents () {
 
 }
 
+
+if [ ! -n $2 ]; then  
+  outPutDir="outPut" 
+else  
+  outPutDir=$2  
+fi
+
 cd $1
+echo "" > "log.txt";
+mkdir $outPutDir
 # 1 遍历$1文件夹下的所有文件，即所有图片素材了。
 for file in ./*
 do
     # 2 获取图片的文件名，并生成 “文件名.imageset”文件夹，方便下一步处理
+    if [ -d $file ];  
+        then  
+        echo "$file is a direstory.";  
+        echo "$file direstory" >> "log.txt";
+        continue;
+    fi;  
+    if [ "${file##*.}"x != "png"x ];then
+
+        echo "$file is a not png image";  
+        echo "$file not_PNG_image" >> "log.txt";
+        continue;
+    fi
+
     imageFile=$(basename $file)
     imageDir=${imageFile/\.png/\.imageset}
+
+    imageDir="$outPutDir/"${imageDir/\.jpg/\.imageset}
+
+    #echo imageFile:$imageFile  imageDir:$imageDir
     mkdir $imageDir
 
     # 3 将图片拷贝入“文件名.imageset”文件夹，并进入该文件夹
@@ -71,6 +99,7 @@ do
     #   最后处理完后，退回上一级目录
     ScalePic $imageFile
     Contents $imageFile
+    cd ..
     cd ..
 done
 cd ..
